@@ -104,7 +104,7 @@ describe('drawCommanders', () => {
 
     for (let round = 0; round < rounds; round++) {
       const [assignment] = drawCommanders([ana, bob], [...anaDecks, ...bobDecks], 'own', rng);
-      counts[assignment.deckId]++;
+      counts[assignment.deckId!]++;
     }
 
     for (const count of Object.values(counts)) {
@@ -119,10 +119,22 @@ describe('drawCommanders', () => {
     );
   });
 
-  test('should throw naming the players without decks when mode is own', () => {
-    expect(() => drawCommanders([ana, bob, carol], anaDecks, 'own', seededRng(1))).toThrow(
-      'Cadastre ao menos um deck para: Bob, Carol',
-    );
+  test('should assign a null deck to a player who owns none when mode is own', () => {
+    const result = drawCommanders([ana, bob], anaDecks, 'own', seededRng(1));
+
+    expect(result).toEqual([
+      { personId: 'ana', deckId: expect.stringMatching(/^ana-/) },
+      { personId: 'bob', deckId: null },
+    ]);
+  });
+
+  test('should let the draw happen with every player deckless when mode is own', () => {
+    const result = drawCommanders([bob, carol], anaDecks, 'own', seededRng(1));
+
+    expect(result).toEqual([
+      { personId: 'bob', deckId: null },
+      { personId: 'carol', deckId: null },
+    ]);
   });
 
   test('should throw explaining how many decks are missing when mode is pool', () => {
@@ -140,5 +152,9 @@ describe('checkDraw', () => {
 
   test('should allow a pool draw when a player owns no deck', () => {
     expect(checkDraw([ana, bob], anaDecks, 'pool')).toBeNull();
+  });
+
+  test('should allow an own draw when a player owns no deck', () => {
+    expect(checkDraw([ana, bob, carol], anaDecks, 'own')).toBeNull();
   });
 });

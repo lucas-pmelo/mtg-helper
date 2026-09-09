@@ -3,6 +3,7 @@ import sheetsData from '../../data/sheets.json';
 import { DECK_SIZE } from '../../domain/stickers/drawStickers';
 import type { Sheet } from '../../domain/types';
 import { useStickerStore } from '../../stores/stickerStore';
+import { Icon } from '../components/Icon';
 
 const sheets = sheetsData as Sheet[];
 const sheetById = new Map(sheets.map((sheet) => [sheet.id, sheet]));
@@ -19,14 +20,20 @@ export function StickersScreen() {
 
   return (
     <div className="screen">
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h1 style={{ margin: 0 }}>Stickers</h1>
-        <span className="counter" style={{ color: isComplete ? 'var(--accent)' : 'var(--muted)' }}>
-          {sheetIds.length}/{DECK_SIZE}
+      <header className="screen-head">
+        <div>
+          <h1>Stickers</h1>
+          <p className="subtitle">Sticker deck do Unfinity</p>
+        </div>
+        <span className="counter-box" data-complete={isComplete}>
+          <span className="counter">
+            {sheetIds.length}/{DECK_SIZE}
+          </span>
+          <span className="label">folhas</span>
         </span>
-      </div>
+      </header>
 
-      <div className="segmented" style={{ marginTop: 14 }}>
+      <div className="segmented">
         <button type="button" aria-pressed={!editing} onClick={() => setEditing(false)}>
           Draw
         </button>
@@ -52,7 +59,7 @@ export function StickersScreen() {
                   disabled={!selected && isComplete}
                   onClick={() => toggleSheet(sheet.id)}
                 >
-                  <img src={sheet.image} alt={sheet.name} loading="lazy" />
+                  <img src={sheet.image} alt="" loading="lazy" />
                 </button>
               );
             })}
@@ -61,9 +68,8 @@ export function StickersScreen() {
       ) : (
         <>
           <button
-            className="btn"
+            className="btn gap-top"
             type="button"
-            style={{ marginTop: 16 }}
             disabled={!isComplete}
             onClick={draw}
           >
@@ -77,20 +83,30 @@ export function StickersScreen() {
             </p>
           )}
 
-          {drawnSheets.length > 0 && (
+          {drawnSheets.length > 0 ? (
             <>
               <h2>Último draw</h2>
               <div className="draw-result">
                 {drawnSheets.map((sheet) => (
-                  <button key={sheet.id} type="button" onClick={() => setZoomed(sheet)}>
+                  <button
+                    key={sheet.id}
+                    type="button"
+                    aria-label={`Ampliar ${sheet.name}`}
+                    onClick={() => setZoomed(sheet)}
+                  >
                     <img src={sheet.image} alt={sheet.name} />
                   </button>
                 ))}
               </div>
-              <p className="muted" style={{ marginTop: 8 }}>
-                Toque para ampliar.
-              </p>
+              <p className="muted gap-top">Toque para ampliar.</p>
             </>
+          ) : (
+            isComplete && (
+              <p className="empty gap-top">
+          <Icon name="target" size={28} className="empty-icon" />
+                Nenhum draw ainda. Toque em Draw 3 para sortear as três folhas da partida.
+              </p>
+            )
           )}
         </>
       )}

@@ -9,6 +9,7 @@ import { useHistoryStore } from '../../stores/historyStore';
 import { usePeopleStore } from '../../stores/peopleStore';
 import { CommanderRow } from '../components/CommanderRow';
 import { MatchForm } from './MatchForm';
+import { Icon } from '../components/Icon';
 
 type Tab = 'days' | 'players' | 'decks';
 
@@ -39,7 +40,12 @@ export function HistoryScreen() {
   if (creating || editing) {
     return (
       <div className="screen">
-        <h1>{editing ? 'Editar partida' : 'Nova partida'}</h1>
+        <header className="screen-head">
+          <div>
+            <h1>{editing ? 'Editar partida' : 'Nova partida'}</h1>
+            <p className="subtitle">Registro manual, independente do sorteio.</p>
+          </div>
+        </header>
         <MatchForm
           initial={editing ?? undefined}
           onCancel={() => {
@@ -60,13 +66,20 @@ export function HistoryScreen() {
 
   return (
     <div className="screen">
-      <h1>Histórico</h1>
+      <header className="screen-head">
+        <div>
+          <h1>Histórico</h1>
+          <p className="subtitle">
+            {matches.length === 1 ? '1 partida registrada' : `${matches.length} partidas registradas`}
+          </p>
+        </div>
+      </header>
 
       <button className="btn" type="button" onClick={() => setCreating(true)}>
         + Nova partida
       </button>
 
-      <div className="segmented" style={{ marginTop: 16 }}>
+      <div className="segmented gap-top">
         <button type="button" aria-pressed={tab === 'days'} onClick={() => setTab('days')}>
           Por dia
         </button>
@@ -78,7 +91,12 @@ export function HistoryScreen() {
         </button>
       </div>
 
-      {matches.length === 0 && <p className="empty">Nenhuma partida registrada ainda.</p>}
+      {matches.length === 0 && (
+        <p className="empty gap-top">
+          <Icon name="history" size={28} className="empty-icon" />
+          Nenhuma partida registrada ainda.
+        </p>
+      )}
 
       {tab === 'days' &&
         days.map((day) => (
@@ -93,17 +111,13 @@ export function HistoryScreen() {
             <div className="stack">
               {day.matches.map((match) => (
                 <article className="card" key={match.id}>
-                  <div className="stack">
+                  <div className="stack stack-tight">
                     {match.participants.map((participant) => {
                       const deck = deckOf(participant.deckId);
                       const won = participant.personId === match.winnerPersonId;
 
                       return (
-                        <div
-                          className="row"
-                          key={participant.personId}
-                          style={{ justifyContent: 'space-between' }}
-                        >
+                        <div className="match-line" key={participant.personId} data-won={won}>
                           {deck ? (
                             <CommanderRow
                               commander={deck.commander}
@@ -118,7 +132,9 @@ export function HistoryScreen() {
                     })}
                   </div>
 
-                  <div className="row" style={{ marginTop: 12 }}>
+                  <hr className="divider" />
+
+                  <div className="row">
                     <button
                       className="btn btn-secondary btn-slim"
                       type="button"
@@ -158,14 +174,15 @@ export function HistoryScreen() {
             ))}
           </select>
 
-          <div className="card" style={{ marginTop: 12 }}>
+          <div className="card gap-top">
             {tab === 'players' &&
               playerRanking.map((stat, index) => (
                 <div className="rank-row" key={stat.personId}>
                   <span className="rank-pos">{index + 1}</span>
                   <span className="rank-main">{stat.name}</span>
                   <span className="rank-stats">
-                    <strong>{stat.wins}</strong> / {stat.played} · {percent(stat.winRate)}
+                    <strong>{stat.wins}</strong>
+                    {stat.played} jogos · {percent(stat.winRate)}
                   </span>
                 </div>
               ))}
@@ -182,7 +199,8 @@ export function HistoryScreen() {
                     />
                   </span>
                   <span className="rank-stats">
-                    <strong>{stat.wins}</strong> / {stat.played} · {percent(stat.winRate)}
+                    <strong>{stat.wins}</strong>
+                    {stat.played} jogos · {percent(stat.winRate)}
                   </span>
                 </div>
               ))}

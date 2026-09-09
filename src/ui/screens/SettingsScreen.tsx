@@ -54,9 +54,14 @@ export function SettingsScreen() {
 
   return (
     <div className="screen">
-      <h1>Configurações</h1>
+      <header className="screen-head">
+        <div>
+          <h1>Configurações</h1>
+          <p className="subtitle">Backup dos dados deste aparelho.</p>
+        </div>
+      </header>
 
-      <div className="stack">
+      <section className="card stack">
         <button className="btn" type="button" onClick={exportBackup}>
           Exportar backup
         </button>
@@ -80,12 +85,12 @@ export function SettingsScreen() {
             event.target.value = '';
           }}
         />
-      </div>
 
-      {message && <p className="muted" style={{ marginTop: 12 }}>{message}</p>}
-      {error && <p className="error">{error}</p>}
+        {message && <p className="notice">{message}</p>}
+        {error && <p className="error">{error}</p>}
+      </section>
 
-      <p className="muted" style={{ marginTop: 24 }}>
+      <p className="muted gap-top-lg">
         Os dados ficam só neste aparelho. O Safari pode limpar o storage de sites sem aviso —
         exporte o backup de vez em quando.
       </p>

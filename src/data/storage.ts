@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   people: 'mtg-helper:people',
   stickers: 'mtg-helper:stickers',
   history: 'mtg-helper:history',
+  cards: 'mtg-helper:cards',
 } as const;
 
 export const BACKUP_VERSION = 1;

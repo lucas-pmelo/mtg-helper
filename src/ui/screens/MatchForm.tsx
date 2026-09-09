@@ -4,6 +4,7 @@ import { today } from '../../domain/history/today';
 import type { Id, Match, MatchParticipant } from '../../domain/types';
 import { usePeopleStore } from '../../stores/peopleStore';
 import type { MatchDraft } from '../../stores/historyStore';
+import { Icon } from '../components/Icon';
 
 type MatchFormProps = {
   initial?: Match;
@@ -49,17 +50,19 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
 
   return (
     <form className="card stack" onSubmit={submit}>
-      <label className="muted" htmlFor="playedOn">
-        Data
-      </label>
-      <input
-        id="playedOn"
-        type="date"
-        value={playedOn}
-        onChange={(event) => setPlayedOn(event.target.value)}
-      />
+      <div className="field">
+        <label className="field-label" htmlFor="playedOn">
+          Data
+        </label>
+        <input
+          id="playedOn"
+          type="date"
+          value={playedOn}
+          onChange={(event) => setPlayedOn(event.target.value)}
+        />
+      </div>
 
-      <h2 style={{ margin: '8px 0 0' }}>Participantes</h2>
+      <h2>Participantes</h2>
 
       {participants.map((participant, index) => {
         const availableDecks = decks.filter(
@@ -67,37 +70,39 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
         );
 
         return (
-          <div className="stack" key={index}>
-            <div className="row">
-              <select
-                value={participant.personId}
-                aria-label={`Jogador ${index + 1}`}
-                onChange={(event) =>
-                  updateParticipant(index, { personId: event.target.value, deckId: '' })
-                }
-              >
-                <option value="">Jogador…</option>
-                {activePeople.map((person) => (
-                  <option value={person.id} key={person.id}>
-                    {person.name}
-                  </option>
-                ))}
-              </select>
-
+          <div className="participant stack stack-tight" key={index}>
+            <div className="row row-between">
+              <span className="participant-index">Jogador {index + 1}</span>
               {participants.length > 2 && (
                 <button
-                  className="btn btn-danger btn-slim"
+                  className="btn btn-ghost btn-icon"
                   type="button"
+                  aria-label={`Remover jogador ${index + 1}`}
                   onClick={() =>
                     setParticipants((current) =>
                       current.filter((_, position) => position !== index),
                     )
                   }
                 >
-                  ✕
+                  <Icon name="close" size={17} />
                 </button>
               )}
             </div>
+
+            <select
+              value={participant.personId}
+              aria-label={`Jogador ${index + 1}`}
+              onChange={(event) =>
+                updateParticipant(index, { personId: event.target.value, deckId: '' })
+              }
+            >
+              <option value="">Jogador…</option>
+              {activePeople.map((person) => (
+                <option value={person.id} key={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
 
             <select
               value={participant.deckId}
@@ -124,7 +129,7 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
         + Participante
       </button>
 
-      <h2 style={{ margin: '8px 0 0' }}>Vencedor</h2>
+      <h2>Vencedor</h2>
       <select
         value={winnerPersonId}
         aria-label="Vencedor"
@@ -140,7 +145,7 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
 
       {error && <p className="error">{error}</p>}
 
-      <div className="row">
+      <div className="form-actions">
         <button className="btn btn-secondary" type="button" onClick={onCancel}>
           Cancelar
         </button>

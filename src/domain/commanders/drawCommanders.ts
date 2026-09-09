@@ -5,7 +5,8 @@ export type DrawMode = 'own' | 'pool';
 
 export type CommanderAssignment = {
   personId: Id;
-  deckId: Id;
+  /** Null when the player owns no deck: they are at the table without a commander. */
+  deckId: Id | null;
 };
 
 const MIN_PLAYERS = 2;
@@ -31,16 +32,7 @@ export function checkDraw(
     return `Selecione ao menos ${MIN_PLAYERS} jogadores`;
   }
 
-  if (mode === 'own') {
-    const playersWithoutDeck = presentPlayers.filter((player) => decksOf(player, decks).length === 0);
-
-    if (playersWithoutDeck.length > 0) {
-      const names = playersWithoutDeck.map((player) => player.name).join(', ');
-      return `Cadastre ao menos um deck para: ${names}`;
-    }
-
-    return null;
-  }
+  if (mode === 'own') return null;
 
   const pool = poolOf(presentPlayers, decks);
   const missingDecks = presentPlayers.length - pool.length;
@@ -64,6 +56,8 @@ export function drawCommanders(
   if (mode === 'own') {
     return presentPlayers.map((player) => {
       const own = decksOf(player, decks);
+      if (own.length === 0) return { personId: player.id, deckId: null };
+
       return { personId: player.id, deckId: own[Math.floor(rng() * own.length)].id };
     });
   }

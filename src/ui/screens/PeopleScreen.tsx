@@ -3,6 +3,7 @@ import { usePeopleStore } from '../../stores/peopleStore';
 import type { Id } from '../../domain/types';
 import { CardAutocomplete } from '../components/CardAutocomplete';
 import { CommanderRow } from '../components/CommanderRow';
+import { Icon } from '../components/Icon';
 
 export function PeopleScreen() {
   const { people, decks, addPerson, archivePerson, addDeck, archiveDeck } = usePeopleStore();
@@ -21,7 +22,12 @@ export function PeopleScreen() {
 
   return (
     <div className="screen">
-      <h1>Pessoas e decks</h1>
+      <header className="screen-head">
+        <div>
+          <h1>Pessoas e decks</h1>
+          <p className="subtitle">Um deck é um comandante.</p>
+        </div>
+      </header>
 
       <form className="row" onSubmit={submitPerson}>
         <input
@@ -35,9 +41,14 @@ export function PeopleScreen() {
         </button>
       </form>
 
-      {activePeople.length === 0 && <p className="empty">Cadastre a primeira pessoa acima.</p>}
+      {activePeople.length === 0 && (
+        <p className="empty gap-top">
+          <Icon name="users" size={28} className="empty-icon" />
+          Cadastre a primeira pessoa acima.
+        </p>
+      )}
 
-      <div className="stack" style={{ marginTop: 16 }}>
+      <div className="stack gap-top">
         {activePeople.map((person) => {
           const personDecks = decks.filter(
             (deck) => !deck.archived && deck.personId === person.id,
@@ -45,8 +56,18 @@ export function PeopleScreen() {
 
           return (
             <section className="card" key={person.id}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <strong>{person.name}</strong>
+              <div className="row row-between">
+                <div className="row">
+                  <span className="avatar" aria-hidden="true">
+                    {person.name.slice(0, 1)}
+                  </span>
+                  <div>
+                    <div className="card-title">{person.name}</div>
+                    <div className="muted">
+                      {personDecks.length === 1 ? '1 deck' : `${personDecks.length} decks`}
+                    </div>
+                  </div>
+                </div>
                 <button
                   className="btn btn-danger btn-slim"
                   type="button"
@@ -60,27 +81,31 @@ export function PeopleScreen() {
                 </button>
               </div>
 
-              <div className="stack" style={{ marginTop: 12 }}>
-                {personDecks.length === 0 && <p className="muted">Nenhum deck cadastrado.</p>}
-
-                {personDecks.map((deck) => (
-                  <div className="row" key={deck.id} style={{ justifyContent: 'space-between' }}>
-                    <CommanderRow commander={deck.commander} />
-                    <button
-                      className="btn btn-danger btn-slim"
-                      type="button"
-                      onClick={() => {
-                        if (confirm(`Arquivar ${deck.commander.name}?`)) archiveDeck(deck.id);
-                      }}
-                    >
-                      ✕
-                    </button>
+              {personDecks.length > 0 && (
+                <>
+                  <hr className="divider" />
+                  <div className="stack stack-tight">
+                    {personDecks.map((deck) => (
+                      <div className="row row-between" key={deck.id}>
+                        <CommanderRow commander={deck.commander} />
+                        <button
+                          className="btn btn-ghost btn-icon"
+                          type="button"
+                          aria-label={`Arquivar ${deck.commander.name}`}
+                          onClick={() => {
+                            if (confirm(`Arquivar ${deck.commander.name}?`)) archiveDeck(deck.id);
+                          }}
+                        >
+                          <Icon name="archive" size={17} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
 
               {openDeckFormFor === person.id ? (
-                <div style={{ marginTop: 12 }}>
+                <div className="stack stack-tight gap-top">
                   <CardAutocomplete
                     onPick={(commander) => {
                       addDeck(person.id, commander);
@@ -90,7 +115,6 @@ export function PeopleScreen() {
                   <button
                     className="btn btn-secondary btn-slim"
                     type="button"
-                    style={{ marginTop: 8 }}
                     onClick={() => setOpenDeckFormFor(null)}
                   >
                     Cancelar
@@ -98,9 +122,8 @@ export function PeopleScreen() {
                 </div>
               ) : (
                 <button
-                  className="btn btn-secondary btn-slim"
+                  className="btn btn-secondary btn-slim gap-top"
                   type="button"
-                  style={{ marginTop: 12 }}
                   onClick={() => setOpenDeckFormFor(person.id)}
                 >
                   + Deck
