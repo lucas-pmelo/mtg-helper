@@ -15,7 +15,8 @@ export type IconName =
   | 'close'
   | 'archive'
   | 'target'
-  | 'plus';
+  | 'plus'
+  | 'chevron';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dice: (
@@ -92,6 +93,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <path d="M5.5 12h13" />
     </>
   ),
+  chevron: <path d="M7 10l5 5 5-5" />,
 };
 
 type IconProps = {

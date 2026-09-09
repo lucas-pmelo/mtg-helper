@@ -42,6 +42,18 @@ export type Match = {
   winnerPersonId: Id;
 };
 
+/**
+ * A match the table is playing right now: it has no winner yet, so it cannot be
+ * a `Match`. Persisted so the draft survives the app closing, but never backed up.
+ */
+export type LiveMatch = {
+  /** 'YYYY-MM-DD' — the day the draw happened, which is the day the match is recorded on. */
+  startedOn: string;
+  participants: MatchParticipant[];
+  /** People at the table without a deck: they play, but there is no deck to record. */
+  benched: Id[];
+};
+
 export type Sheet = {
   id: string;
   name: string;
@@ -64,4 +76,14 @@ export type CardLookup = {
   text: string;
   image: string;
   fetchedAt: string;
+};
+
+/** A named date range; a match belongs to the season whose range contains its playedOn. */
+export type Season = {
+  id: Id;
+  name: string;
+  /** 'YYYY-MM-DD', inclusive. */
+  startsOn: string;
+  /** 'YYYY-MM-DD' inclusive, or null while the season is still open. */
+  endsOn: string | null;
 };

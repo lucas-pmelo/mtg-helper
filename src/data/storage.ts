@@ -1,4 +1,4 @@
-import type { Deck, Match, Person, StickerDeck, StickerDraw } from '../domain/types';
+import type { Deck, Match, Person, Season, StickerDeck, StickerDraw } from '../domain/types';
 
 export const STORAGE_KEYS = {
   people: 'mtg-helper:people',
@@ -16,13 +16,17 @@ export type Backup = {
   stickerDeck: StickerDeck;
   lastDraw: StickerDraw | null;
   matches: Match[];
+  seasons: Season[];
 };
+
+/** Backups written before seasons existed carry no season list; the version did not change. */
+type StoredBackup = Omit<Backup, 'seasons'> & { seasons?: Season[] };
 
 export function serializeBackup(backup: Backup): string {
   return JSON.stringify(backup, null, 2);
 }
 
-function hasBackupShape(value: unknown): value is Backup {
+function hasBackupShape(value: unknown): value is StoredBackup {
   const backup = value as Partial<Backup>;
 
   return (
@@ -32,6 +36,7 @@ function hasBackupShape(value: unknown): value is Backup {
     Array.isArray(backup.people) &&
     Array.isArray(backup.decks) &&
     Array.isArray(backup.matches) &&
+    (backup.seasons === undefined || Array.isArray(backup.seasons)) &&
     typeof backup.stickerDeck === 'object' &&
     backup.stickerDeck !== null &&
     Array.isArray(backup.stickerDeck.sheetIds)
@@ -52,5 +57,5 @@ export function parseBackup(json: string): Backup {
     throw new Error('Arquivo inválido: formato desconhecido');
   }
 
-  return parsed;
+  return { ...parsed, seasons: parsed.seasons ?? [] };
 }

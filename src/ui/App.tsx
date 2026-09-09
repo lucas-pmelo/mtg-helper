@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Icon, type IconName } from './components/Icon';
+import { LiveMatchBar } from './components/LiveMatchBar';
 import { CardScreen } from './screens/CardScreen';
 import { CommandersScreen } from './screens/CommandersScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
@@ -31,6 +32,8 @@ export function App() {
 
   return (
     <div className="app">
+      <LiveMatchBar />
+
       <main className="app-main">
         <Screen />
       </main>

@@ -309,6 +309,110 @@ h2 {
   filter: drop-shadow(0 0 8px var(--accent-glow));
 }
 
+/* =========================== partida em andamento ======================= */
+
+/*
+ * No fluxo, acima da tela: o `.screen` desce, nada fica coberto, e a safe area
+ * do notch continua sendo do `.app`. Fica logo abaixo do topo e acima de tudo,
+ * em qualquer aba — é o que a torna lembrete em vez de mais uma tela.
+ */
+.live-bar {
+  position: relative;
+  z-index: 10;
+  margin: var(--s2) max(var(--s3), env(safe-area-inset-left)) 0
+    max(var(--s3), env(safe-area-inset-right));
+  border: 1px solid rgba(91, 157, 255, 0.22);
+  border-radius: var(--r-md);
+  background: linear-gradient(158deg, var(--surface-2), var(--surface));
+  box-shadow: var(--nu-out-sm);
+}
+
+.live-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) var(--s4);
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: var(--text);
+  text-align: left;
+}
+
+/* Um ponto pulsante: a mesa precisa notar que algo está aberto, sem emoji. */
+.live-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  animation: live-pulse 2s var(--ease) infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.live-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.live-title {
+  font-size: var(--fs-md);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.live-caret {
+  flex: none;
+  color: var(--muted);
+  transition: transform var(--dur-2) var(--ease);
+}
+
+.live-caret.open {
+  transform: rotate(180deg);
+}
+
+.live-panel {
+  padding: 0 var(--s4) var(--s4);
+}
+
+.live-panel .label {
+  display: block;
+  margin-bottom: var(--s2);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Vencedor é um toque: botões largos o bastante para o dedo, em pé, no escuro. */
+.live-winners {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--s2);
+}
+
+.live-winners .btn {
+  width: 100%;
+  min-height: var(--tap);
+  font-size: var(--fs-md);
+}
+
+.live-panel .notice {
+  margin-top: var(--s3);
+}
+
 /* =========================== controles ================================== */
 
 button,
@@ -675,6 +779,142 @@ select:disabled {
   box-shadow: var(--nu-out-sm), 0 0 12px var(--accent-glow);
 }
 
+/* interruptor — mesmo relevo do checkbox-row: ligado afunda */
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s3) var(--s4);
+  text-align: left;
+  color: var(--text);
+  font-size: var(--fs-base);
+  background: linear-gradient(158deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--nu-out-sm);
+  transition:
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-2) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+
+.switch-row:active {
+  transform: scale(0.99);
+}
+
+.switch-row[aria-checked='true'] {
+  border-color: transparent;
+  background: var(--bg);
+  box-shadow: var(--nu-in);
+}
+
+.switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* O trilho é cavado; o botão salta dele. */
+.switch-track {
+  flex: none;
+  display: flex;
+  align-items: center;
+  width: 46px;
+  height: 27px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: var(--bg);
+  box-shadow: var(--nu-in);
+}
+
+.switch-knob {
+  width: 21px;
+  height: 21px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(160deg, var(--surface-3), var(--surface));
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--nu-out-sm);
+  transition:
+    transform var(--dur-2) var(--ease),
+    background-color var(--dur-1) var(--ease);
+}
+
+.switch-row[aria-checked='true'] .switch-knob {
+  transform: translateX(19px);
+  background: linear-gradient(160deg, var(--accent-soft), var(--accent-deep));
+  border-color: transparent;
+  box-shadow: var(--nu-out-sm), 0 0 12px var(--accent-glow);
+}
+
+/* =========================== draft ====================================== */
+
+/* O celular circula pela mesa: o nome tem que ler a um braço de distância. */
+.draft-turn {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s5) var(--s4);
+  text-align: left;
+}
+
+.draft-turn .player {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.draft-turn .label {
+  display: block;
+  margin-bottom: var(--s1);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.draft-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--s3);
+}
+
+.draft-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s2);
+  color: var(--text);
+  text-align: center;
+  background: linear-gradient(158deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--nu-out-sm);
+  transition:
+    transform var(--dur-1) var(--ease),
+    box-shadow var(--dur-2) var(--ease);
+}
+
+.draft-option:active {
+  transform: translateY(1px);
+  box-shadow: var(--nu-in);
+}
+
+.draft-option .name {
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .result-card {
   overflow: hidden;
   padding: 0;
@@ -707,6 +947,14 @@ select:disabled {
 .result-head .commander-none {
   color: var(--muted);
   font-style: italic;
+}
+
+/* A mesa precisa saber que o filtro não falhou: não havia outro deck. */
+.result-head .repeat-note {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.3;
 }
 
 /* Sem arte embaixo: o cabeçalho é o card inteiro. */
@@ -916,6 +1164,20 @@ select:disabled {
 
 /* =========================== histórico / ranking ======================== */
 
+.season-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.season-head .muted {
+  flex: none;
+  text-align: right;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 .day-header {
   display: flex;
   align-items: baseline;
@@ -996,19 +1258,19 @@ select:disabled {
   box-shadow: var(--nu-in);
 }
 
-.rank-row:nth-child(1) .rank-pos {
+.rank-pos[data-rank='1'] {
   background: linear-gradient(160deg, var(--accent-soft), var(--accent-deep));
   color: var(--accent-ink);
   box-shadow: var(--nu-out-sm), 0 0 14px -2px var(--accent-glow);
 }
 
-.rank-row:nth-child(2) .rank-pos {
+.rank-pos[data-rank='2'] {
   background: linear-gradient(160deg, #cdd6e3, #828d9e);
   color: #14181f;
   box-shadow: var(--nu-out-sm);
 }
 
-.rank-row:nth-child(3) .rank-pos {
+.rank-pos[data-rank='3'] {
   background: linear-gradient(160deg, #7b8cc4, #414d7d);
   color: #0b0f1c;
   box-shadow: var(--nu-out-sm);
@@ -1033,6 +1295,99 @@ select:disabled {
   display: block;
   color: var(--text);
   font-size: var(--fs-lg);
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+/* Uma linha de jogador vira botão: aperta e o confronto abre logo abaixo dela. */
+.rank-item {
+  border-bottom: 1px solid var(--line);
+}
+
+.rank-item:last-child {
+  border-bottom: 0;
+}
+
+.rank-item .rank-row {
+  width: 100%;
+  padding: var(--s3) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.rank-item:first-child .rank-row {
+  padding-top: 0;
+}
+
+.rank-item:last-child .rank-row[aria-expanded='false'] {
+  padding-bottom: 0;
+}
+
+.rank-row-button:active {
+  transform: scale(0.99);
+}
+
+.rank-row-button[aria-expanded='true'] .rank-main {
+  color: var(--accent);
+}
+
+/* O painel recebe conteúdo, então afunda. */
+.h2h {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+  padding: var(--s3);
+  background: var(--bg);
+  border-radius: var(--r-sm);
+  box-shadow: var(--nu-in);
+}
+
+.h2h-empty {
+  margin: 0 0 var(--s3);
+  padding: var(--s3);
+  background: var(--bg);
+  border-radius: var(--r-sm);
+  box-shadow: var(--nu-in);
+  font-size: var(--fs-sm);
+}
+
+.h2h-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.h2h-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+
+.h2h-score {
+  flex: none;
+  display: flex;
+  gap: var(--s3);
+}
+
+.h2h-cell {
+  display: grid;
+  justify-items: center;
+  min-width: 34px;
+  color: var(--muted);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.h2h-cell strong {
+  color: var(--text);
+  font-size: var(--fs-md);
   font-weight: 650;
   line-height: 1.1;
 }
