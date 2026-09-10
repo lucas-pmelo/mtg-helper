@@ -453,6 +453,35 @@ select {
   background-repeat: no-repeat;
 }
 
+/*
+ * WebKit sizes a date input by its intrinsic content and ignores width: 100%,
+ * so the field spills out of the card on iOS. Reset the appearance and let the
+ * box win.
+ */
+input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type='date']::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  margin: 0;
+  opacity: 0.65;
+}
+
+/* A flex or grid child refuses to shrink below its content without this. */
+.field,
+.stack > label {
+  min-width: 0;
+}
+
 input::placeholder {
   color: var(--muted);
 }
