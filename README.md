@@ -36,19 +36,19 @@ React 19, TypeScript, Vite, Zustand, Vitest. Card data comes from the
 ## Running it
 
 ```bash
-npm install
-npm run dev        # http://localhost:5173
+bun install
+bun run dev        # http://localhost:5173
 ```
 
-To try it on a phone on the same network: `npm run dev -- --host`, then open the
+To try it on a phone on the same network: `bun run dev --host`, then open the
 address it prints.
 
 ## Verifying
 
 ```bash
-npm test           # full suite (Vitest)
-npm run coverage   # coverage of domain/, data/ and stores/
-npm run validate   # tsc --noEmit
+bun run test       # full suite (Vitest) — `run` matters, `bun test` is another runner
+bun run coverage   # coverage of domain/, data/ and stores/
+bun run validate   # tsc --noEmit
 ```
 
 `domain/`, `data/` and `stores/` are held at 100% coverage.
@@ -56,8 +56,8 @@ npm run validate   # tsc --noEmit
 ## Building and deploying
 
 ```bash
-npm run build      # typecheck + bundle into dist/
-npm run preview    # serve dist/ locally
+bun run build      # typecheck + bundle into dist/
+bun run preview    # serve dist/ locally
 ```
 
 `dist/` is static, so it runs anywhere — Vercel, Netlify, GitHub Pages. This
@@ -75,7 +75,7 @@ without warning. Match history cannot be reconstructed — export a backup from
 
 `src/data/sheets.json` holds the 48 Unfinity sticker sheets (`set:sunf`), fetched
 from Scryfall once. It is immutable 2022 data and is never fetched at runtime.
-Regenerate it with `npm run generate:sheets`.
+Regenerate it with `bun run generate:sheets`.
 
 ## Design notes
 

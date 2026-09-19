@@ -3,7 +3,7 @@
  * src/data/sheets.json. Run once — the set is immutable data from 2022 and
  * the app never queries Scryfall for it at runtime.
  *
- *   npm run generate:sheets
+ *   bun run generate:sheets
  */
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';

@@ -1,6 +1,8 @@
 version: 2
 
 updates:
+  # Bun lockfiles are handled by the npm ecosystem: it reads package.json and
+  # updates bun.lock.
   - package-ecosystem: npm
     directory: /
     schedule:

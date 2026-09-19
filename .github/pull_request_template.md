@@ -12,7 +12,7 @@
 
 ## Checklist
 
-- [ ] `npm test` passes
-- [ ] `npm run validate` passes
+- [ ] `bun run test` passes
+- [ ] `bun run validate` passes
 - [ ] New behaviour has a test that failed before the change
 - [ ] Docs updated, if the change is visible from the outside

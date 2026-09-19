@@ -6,25 +6,25 @@ the process is light — but the conventions below are what keep it small.
 ## Getting set up
 
 ```bash
-npm install
-npm run dev        # http://localhost:5173
+bun install
+bun run dev        # http://localhost:5173
 ```
 
-Node 22 or newer. No environment variables, no services to start: the app talks
+Bun 1.3 or newer. No environment variables, no services to start: the app talks
 only to the public Scryfall API and stores everything in `localStorage`.
 
 ## Before you open a pull request
 
 ```bash
-npm run validate   # tsc --noEmit
-npm test           # the full Vitest suite
-npm run build      # typecheck + production bundle
+bun run validate   # tsc --noEmit
+bun run test       # the full Vitest suite — `run` matters, `bun test` is another runner
+bun run build      # typecheck + production bundle
 ```
 
 CI runs exactly these three, in this order, on every pull request. Running them
 locally first saves a round trip.
 
-`domain/`, `data/` and `stores/` sit at 100% coverage (`npm run coverage`), and
+`domain/`, `data/` and `stores/` sit at 100% coverage (`bun run coverage`), and
 the intent is to keep them there. The UI is covered by flow tests in
 `src/ui/App.test.tsx` rather than by chasing a number.
 
