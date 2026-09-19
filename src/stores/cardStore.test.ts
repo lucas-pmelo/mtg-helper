@@ -63,3 +63,33 @@ describe('useCardStore', () => {
     expect(stored.state.recent[0].printedName).toBe('Capturador Infernal');
   });
 });
+
+describe('useCardStore set sizes', () => {
+  beforeEach(() => {
+    useCardStore.setState({ setSizes: [], setsFetchedAt: null });
+  });
+
+  test('should keep the set list with the moment it was fetched', () => {
+    useCardStore.getState().rememberSets([{ code: 'uds', cardCount: 143, releasedAt: '1999-06-07' }]);
+
+    expect(useCardStore.getState().setSizes).toHaveLength(1);
+    expect(useCardStore.getState().setsFetchedAt).not.toBeNull();
+  });
+
+  test('should persist the set list so the footer lookup works offline', () => {
+    useCardStore.getState().rememberSets([{ code: 'uds', cardCount: 143, releasedAt: '1999-06-07' }]);
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.cards) ?? '{}');
+
+    expect(stored.state.setSizes[0].code).toBe('uds');
+  });
+
+  test('should drop the set list when the player clears the cache', () => {
+    useCardStore.getState().rememberSets([{ code: 'uds', cardCount: 143, releasedAt: '1999-06-07' }]);
+
+    useCardStore.getState().clear();
+
+    expect(useCardStore.getState().setSizes).toEqual([]);
+    expect(useCardStore.getState().setsFetchedAt).toBeNull();
+  });
+});

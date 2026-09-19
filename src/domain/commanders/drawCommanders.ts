@@ -1,5 +1,6 @@
 import { shuffle, type Rng } from '../rng';
 import type { Deck, Id, Match, Person } from '../types';
+import { collapseGroups } from './deckGroups';
 import { eligibleDecks, isRepeat } from './eligibleDecks';
 import { pickWeighted } from './weightsFor';
 
@@ -53,7 +54,9 @@ export function checkDraw(
 
   if (mode === 'own') return null;
 
-  const pool = poolOf(presentPlayers, decks);
+  // Only the size matters here, and every collapse leaves the same size: which
+  // member of a precon stays is a draw the real one makes with its own rng.
+  const pool = collapseGroups(poolOf(presentPlayers, decks), () => 0);
   const missingDecks = presentPlayers.length - pool.length;
 
   if (missingDecks > 0) {
@@ -92,7 +95,9 @@ function drawPool(
   rng: Rng,
   options: Required<DrawOptions>,
 ): CommanderAssignment[] {
-  const pool = poolOf(presentPlayers, decks);
+  // Two commanders of one precon are one physical deck: only one of them may
+  // enter the draw, and chance decides which.
+  const pool = collapseGroups(poolOf(presentPlayers, decks), rng);
 
   // An exact pool has nothing to choose from: every deck plays either way, so the
   // handicap must not pretend to weigh it.

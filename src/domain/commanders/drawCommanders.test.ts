@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { checkDraw, drawCommanders } from './drawCommanders';
-import { makeDeck } from '../../tests/factories/make-deck';
+import { makeCardRef, makeDeck } from '../../tests/factories/make-deck';
 import { makeMatch } from '../../tests/factories/make-match';
 import { makePerson } from '../../tests/factories/make-person';
 import { seededRng, sequenceRng } from '../../tests/rng';
@@ -415,5 +415,36 @@ describe('drawCommanders with options', () => {
     });
 
     expect(result.find((one) => one.personId === 'ana')?.deckId).toBe('ana-2');
+  });
+});
+
+describe('drawCommanders with a shared precon', () => {
+  const quartet = ['The Thing', 'Invisible Woman', 'Human Torch', 'Mister Fantastic'].map(
+    (name, index) =>
+      makeDeck({ id: `q${index}`, personId: 'ana', commander: makeCardRef({ name }) }),
+  );
+  const bobDeck = makeDeck({ id: 'bob-1', personId: 'bob' });
+  const carolDeck = makeDeck({ id: 'carol-1', personId: 'carol' });
+
+  test('should never hand two commanders of the same precon out in a pool draw', () => {
+    const rng = seededRng(11);
+    const decks = [...quartet, bobDeck, carolDeck];
+
+    for (let round = 0; round < 200; round++) {
+      const result = drawCommanders([ana, bob, carol], decks, 'pool', rng);
+      const fromQuartet = result.filter((assignment) =>
+        quartet.some((deck) => deck.id === assignment.deckId),
+      );
+
+      expect(fromQuartet.length).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('should count the precon as one deck when checking the pool', () => {
+    const decks = [...quartet, bobDeck];
+
+    expect(checkDraw([ana, bob, carol], decks, 'pool')).toBe(
+      'O pool tem 2 decks para 3 jogadores: faltam 1',
+    );
   });
 });

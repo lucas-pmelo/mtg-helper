@@ -82,6 +82,21 @@ function clickButton(label: string) {
   });
 }
 
+/**
+ * React tracks the last value it wrote to the node, so assigning `value`
+ * directly makes it swallow the event. Going through the prototype setter is
+ * what makes the change look like typing.
+ */
+function fillField(label: string, value: string) {
+  const input = container.querySelector(`input[aria-label="${label}"]`) as HTMLInputElement;
+  const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+
+  act(() => {
+    setValue?.call(input, value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
 function clickBar() {
   const summary = container.querySelector('.live-summary') as HTMLButtonElement;
 
@@ -101,7 +116,7 @@ beforeEach(() => {
   });
   useHistoryStore.setState({ matches: [makeMatch()], seasons: [], liveMatch: null });
   useStickerStore.setState({ sheetIds: [], lastDraw: null });
-  useCardStore.setState({ recent: [] });
+  useCardStore.setState({ recent: [], setSizes: [], setsFetchedAt: null });
 });
 
 afterEach(() => {
@@ -153,6 +168,60 @@ describe('App', () => {
     expect(cards).toHaveLength(2);
     expect(container.textContent).toContain('sem deck cadastrado');
     expect(container.querySelectorAll('.result-art')).toHaveLength(1);
+  });
+
+  test('should offer every deck to every player when registering a match', () => {
+    render();
+    clickTab('Histórico');
+    clickButton('+ Nova partida');
+
+    const person = container.querySelector('select[aria-label="Jogador 1"]') as HTMLSelectElement;
+    act(() => {
+      person.value = 'ana';
+      person.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const deck = container.querySelector(
+      'select[aria-label="Deck do jogador 1"]',
+    ) as HTMLSelectElement;
+    const offered = [...deck.querySelectorAll('option')].map((option) => option.value);
+
+    expect(offered).toContain('ana-1');
+    expect(offered).toContain('bob-1');
+  });
+
+  test('should refuse a match where two players carry the same deck', () => {
+    render();
+    clickTab('Histórico');
+    clickButton('+ Nova partida');
+
+    for (const [index, personId] of [['1', 'ana'], ['2', 'bob']] as const) {
+      const person = container.querySelector(
+        `select[aria-label="Jogador ${index}"]`,
+      ) as HTMLSelectElement;
+      act(() => {
+        person.value = personId;
+        person.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+
+      const deck = container.querySelector(
+        `select[aria-label="Deck do jogador ${index}"]`,
+      ) as HTMLSelectElement;
+      act(() => {
+        deck.value = 'ana-1';
+        deck.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+
+    const winner = container.querySelector('select[aria-label="Vencedor"]') as HTMLSelectElement;
+    act(() => {
+      winner.value = 'ana';
+      winner.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    clickButton('Salvar');
+
+    expect(container.textContent).toContain('Cada deck só pode aparecer uma vez na partida');
   });
 
   test('should label every tab with an svg icon instead of an emoji', () => {
@@ -433,6 +502,100 @@ describe('App', () => {
     expect(container.querySelector('.lookup-name')?.textContent).toBe('Capturador Infernal');
     expect(container.textContent).toContain('Fell the Profane');
     expect(container.textContent).toContain('Criatura — Demônio');
+  });
+
+  test('should find an old card by the number and total on its footer', async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      const body = url.includes('/sets')
+        ? { data: [{ code: 'uds', card_count: 143, released_at: '1999-06-07' }] }
+        : url.includes('/cards/search')
+          ? {
+              data: [
+                {
+                  id: 'repercussion-id',
+                  name: 'Repercussion',
+                  set: 'uds',
+                  collector_number: '95',
+                  color_identity: ['R'],
+                  image_uris: { normal: 'https://cards.scryfall.io/normal/uds-95.jpg' },
+                },
+              ],
+            }
+          : {
+              id: 'repercussion-id',
+              name: 'Repercussion',
+              lang: 'pt',
+              color_identity: ['R'],
+              printed_name: 'Repercussão',
+              image_uris: { normal: 'https://cards.scryfall.io/normal/uds-95-pt.jpg' },
+            };
+
+      return { ok: true, status: 200, json: async () => body } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    render();
+    clickTab('Carta');
+    clickSegment('Número / total');
+
+    fillField('Número da carta', '95');
+    fillField('Total de cartas do set', '143');
+
+    await act(async () => {
+      findButton('Buscar').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(container.querySelector('.lookup-name')?.textContent).toBe('Repercussão');
+    expect(useCardStore.getState().setSizes).toHaveLength(1);
+  });
+
+  test('should let the table choose when the footer total matches several sets', async () => {
+    useCardStore.setState({
+      setSizes: [
+        { code: 'uds', cardCount: 143, releasedAt: '1999-06-07' },
+        { code: 'exo', cardCount: 143, releasedAt: '1998-06-15' },
+      ],
+      setsFetchedAt: new Date().toISOString(),
+    });
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: [
+          {
+            id: 'repercussion-id',
+            name: 'Repercussion',
+            set: 'uds',
+            collector_number: '95',
+            color_identity: ['R'],
+            image_uris: { normal: 'https://cards.scryfall.io/normal/uds-95.jpg' },
+          },
+          {
+            id: 'price-id',
+            name: 'Price of Progress',
+            set: 'exo',
+            collector_number: '95',
+            color_identity: ['R'],
+            image_uris: { normal: 'https://cards.scryfall.io/normal/exo-95.jpg' },
+          },
+        ],
+      }),
+    })) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
+    render();
+    clickTab('Carta');
+    clickSegment('Número / total');
+
+    fillField('Número da carta', '95');
+    fillField('Total de cartas do set', '143');
+
+    await act(async () => {
+      findButton('Buscar').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const options = [...container.querySelectorAll('.candidate')];
+    expect(options).toHaveLength(2);
+    expect(container.textContent).toContain('Repercussion');
+    expect(container.textContent).toContain('Price of Progress');
   });
 
   test('should list the recorded match on the history screen', () => {
