@@ -1,4 +1,5 @@
 import { cardKey, normalizeCode } from '../domain/cards/cardCache';
+import type { SetSize } from '../domain/cards/setSizes';
 import type { CardLookup, CardRef } from '../domain/types';
 
 const API = 'https://api.scryfall.com';
@@ -134,4 +135,62 @@ export async function fetchPrintedCard(
   }
 
   return toCardLookup(printing, set, collectorNumber);
+}
+
+/** A search result: unlike `/cards/named`, it always says where the printing is. */
+type ScryfallPrint = ScryfallCard & {
+  set: string;
+  collector_number: string;
+};
+
+type ScryfallSet = {
+  code: string;
+  card_count: number;
+  released_at: string;
+};
+
+/** A printing found by the footer alone, before the table says which one it is. */
+export type CardCandidate = {
+  set: string;
+  collectorNumber: string;
+  name: string;
+  image: string;
+};
+
+/** The whole set list, kept down to what a footer total can be matched against. */
+export async function fetchSetSizes(signal?: AbortSignal): Promise<SetSize[]> {
+  const { data } = await get<{ data: ScryfallSet[] }>('/sets', signal);
+
+  return data.map((set) => ({
+    code: set.code,
+    cardCount: set.card_count,
+    releasedAt: set.released_at,
+  }));
+}
+
+/**
+ * Cards sitting at `collectorNumber` in any of those sets — one query, because
+ * a footer like `95/143` matches a handful of sets and each holds one card at 95.
+ */
+export async function searchPrintings(
+  collectorNumber: string,
+  setCodes: readonly string[],
+  signal?: AbortSignal,
+): Promise<CardCandidate[]> {
+  if (setCodes.length === 0) return [];
+
+  const query = `cn:${normalizeCode(collectorNumber)} (${setCodes.map((code) => `e:${code}`).join(' or ')})`;
+  const found = await getOrNull<{ data: ScryfallPrint[] }>(
+    `/cards/search?q=${encodeURIComponent(query)}&unique=prints&order=released`,
+    signal,
+  );
+
+  if (!found) return [];
+
+  return found.data.map((card) => ({
+    set: card.set,
+    collectorNumber: card.collector_number,
+    name: card.name,
+    image: frontImages(card)?.normal ?? '',
+  }));
 }

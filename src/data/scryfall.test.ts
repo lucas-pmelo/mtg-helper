@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { autocompleteCardNames, fetchCardByName, fetchPrintedCard, toCardRef } from './scryfall';
+import {
+  autocompleteCardNames,
+  fetchCardByName,
+  fetchPrintedCard,
+  fetchSetSizes,
+  searchPrintings,
+  toCardRef,
+} from './scryfall';
 
 /**
  * A fixed `body` answers any URL. Passing a function answers per URL: returning
@@ -295,5 +302,73 @@ describe('fetchPrintedCard', () => {
     await fetchPrintedCard('sld', '125a/b');
 
     expect(fetchMock.mock.calls[0][0]).toBe('https://api.scryfall.com/cards/sld/125a%2Fb/pt');
+  });
+});
+
+describe('fetchSetSizes', () => {
+  test('should keep only what identifies a set by its footer total', async () => {
+    stubFetch({
+      data: [
+        { code: 'uds', name: "Urza's Destiny", card_count: 143, released_at: '1999-06-07' },
+        { code: 'mh3', name: 'Modern Horizons 3', card_count: 261, released_at: '2024-06-14' },
+      ],
+    });
+
+    await expect(fetchSetSizes()).resolves.toEqual([
+      { code: 'uds', cardCount: 143, releasedAt: '1999-06-07' },
+      { code: 'mh3', cardCount: 261, releasedAt: '2024-06-14' },
+    ]);
+  });
+});
+
+describe('searchPrintings', () => {
+  const REPERCUSSION = {
+    id: 'repercussion-id',
+    name: 'Repercussion',
+    set: 'uds',
+    collector_number: '95',
+    color_identity: ['R'],
+    image_uris: { normal: 'https://cards.scryfall.io/normal/uds-95.jpg' },
+  };
+
+  test('should ask for the card number across every candidate set at once', async () => {
+    const fetchMock = stubFetch({ data: [REPERCUSSION] });
+
+    const found = await searchPrintings('95', ['uds', 'exo']);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(decodeURIComponent(fetchMock.mock.calls[0][0])).toContain('cn:95');
+    expect(decodeURIComponent(fetchMock.mock.calls[0][0])).toContain('e:uds or e:exo');
+    expect(found).toEqual([
+      {
+        set: 'uds',
+        collectorNumber: '95',
+        name: 'Repercussion',
+        image: 'https://cards.scryfall.io/normal/uds-95.jpg',
+      },
+    ]);
+  });
+
+  test('should leave the image empty when the printing carries none', async () => {
+    stubFetch({
+      data: [{ id: 'old-id', name: 'Repercussion', set: 'uds', collector_number: '95' }],
+    });
+
+    const [found] = await searchPrintings('95', ['uds']);
+
+    expect(found.image).toBe('');
+  });
+
+  test('should give nothing when Scryfall knows no such printing', async () => {
+    stubFetch(() => undefined);
+
+    await expect(searchPrintings('95', ['uds'])).resolves.toEqual([]);
+  });
+
+  test('should not touch the network when no set has that size', async () => {
+    const fetchMock = stubFetch({ data: [REPERCUSSION] });
+
+    await expect(searchPrintings('95', [])).resolves.toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

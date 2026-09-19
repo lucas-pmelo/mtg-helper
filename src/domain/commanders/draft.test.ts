@@ -8,7 +8,7 @@ import {
   type DraftState,
 } from './draft';
 import type { DrawMode } from './drawCommanders';
-import { makeDeck } from '../../tests/factories/make-deck';
+import { makeCardRef, makeDeck } from '../../tests/factories/make-deck';
 import { makeMatch } from '../../tests/factories/make-match';
 import { makePerson } from '../../tests/factories/make-person';
 import type { Match, Person } from '../types';
@@ -416,5 +416,40 @@ describe('draft output', () => {
 
     expect(final.picks.map((pick) => pick.personId).sort()).toEqual(['ana', 'bob', 'carol']);
     expect(final.picks.filter((pick) => pick.deckId === null)).toHaveLength(2);
+  });
+});
+
+describe('startDraft with a shared precon', () => {
+  const quartet = ['The Thing', 'Invisible Woman', 'Human Torch', 'Mister Fantastic'].map(
+    (name, index) =>
+      makeDeck({ id: `q${index}`, personId: 'ana', commander: makeCardRef({ name }) }),
+  );
+  const others = [
+    makeDeck({ id: 'bob-1', personId: 'bob' }),
+    makeDeck({ id: 'carol-1', personId: 'carol' }),
+  ];
+  const isQuartet = (deckId: string) => quartet.some((deck) => deck.id === deckId);
+
+  test('should drop the whole precon from the options once one of it is picked', () => {
+    const context = makeContext({ decks: [...quartet, ...others], mode: 'pool' });
+    const started = startDraft([ana, bob, carol], context, seededRng(5));
+    const quartetOption = started.options.find(isQuartet);
+
+    expect(quartetOption).toBeDefined();
+
+    const next = pickInDraft(started, quartetOption as string, context, seededRng(5));
+
+    expect(next.options.filter(isQuartet)).toEqual([]);
+  });
+
+  test('should never let a pool draft end with two commanders of the same precon', () => {
+    const context = makeContext({ decks: [...quartet, ...others], mode: 'pool' });
+
+    for (let seed = 1; seed <= 50; seed++) {
+      const finished = playThrough(startDraft([ana, bob, carol], context, seededRng(seed)), context);
+      const picked = finished.picks.filter((pick) => pick.deckId && isQuartet(pick.deckId));
+
+      expect(picked.length).toBeLessThanOrEqual(1);
+    }
   });
 });

@@ -1535,6 +1535,13 @@ select:disabled {
   font-size: var(--fs-md);
 }
 
+.candidate .code {
+  color: var(--muted);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .recent-card .code {
   flex: none;
   color: var(--muted);

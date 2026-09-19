@@ -1,5 +1,6 @@
 import { shuffle, type Rng } from '../rng';
 import type { Deck, Id, Match, Person } from '../types';
+import { withoutGroupMates } from './deckGroups';
 import { eligibleDecks, isRepeat } from './eligibleDecks';
 import { checkDraw, type CommanderAssignment, type DrawMode } from './drawCommanders';
 import { pickWeighted } from './weightsFor';
@@ -39,10 +40,16 @@ export function checkDraftStart(
 }
 
 function poolCandidates(state: DraftState, context: DraftContext): Deck[] {
-  const pool = context.decks.filter(
+  const available = context.decks.filter(
     (deck) =>
       !deck.archived && state.order.includes(deck.personId) && !state.taken.includes(deck.id),
   );
+
+  // A precon leaves the table whole: picking one of its commanders takes the
+  // physical deck, so its siblings stop being an option for everyone.
+  const taken = context.decks.filter((deck) => state.taken.includes(deck.id));
+  const pool = withoutGroupMates(available, taken);
+
   if (!context.avoidRepeat) return pool;
 
   const personId = state.order[state.turn];

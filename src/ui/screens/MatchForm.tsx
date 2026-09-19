@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { checkMatch } from '../../domain/history/checkMatch';
 import { today } from '../../domain/history/today';
-import type { Id, Match, MatchParticipant } from '../../domain/types';
+import type { Deck, Id, Match, MatchParticipant, Person } from '../../domain/types';
 import { usePeopleStore } from '../../stores/peopleStore';
 import type { MatchDraft } from '../../stores/historyStore';
 import { Icon } from '../components/Icon';
@@ -27,6 +27,26 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
   const activePeople = people.filter((person) => !person.archived);
   const namedParticipants = participants.filter((participant) => participant.personId);
 
+  /**
+   * Every deck on the table, owner by owner: playing someone else's deck is
+   * common enough that filtering by owner only got in the way. The player's own
+   * decks come first, since that is still the usual pick.
+   */
+  function decksByOwner(personId: Id): { owner: Person; owned: Deck[] }[] {
+    return activePeople
+      .map((owner) => ({
+        owner,
+        owned: decks.filter((deck) => !deck.archived && deck.personId === owner.id),
+      }))
+      .filter((group) => group.owned.length > 0)
+      .sort((a, b) => {
+        if (a.owner.id === personId) return -1;
+        if (b.owner.id === personId) return 1;
+
+        return a.owner.name.localeCompare(b.owner.name);
+      });
+  }
+
   function updateParticipant(index: number, change: Partial<MatchParticipant>) {
     setParticipants((current) =>
       current.map((participant, position) =>
@@ -38,7 +58,7 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
   function submit(event: React.FormEvent) {
     event.preventDefault();
     const draft: MatchDraft = { playedOn, participants: namedParticipants, winnerPersonId };
-    const reason = checkMatch(draft);
+    const reason = checkMatch(draft, decks);
 
     if (reason) {
       setError(reason);
@@ -65,9 +85,7 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
       <h2>Participantes</h2>
 
       {participants.map((participant, index) => {
-        const availableDecks = decks.filter(
-          (deck) => deck.personId === participant.personId && !deck.archived,
-        );
+        const ownerGroups = decksByOwner(participant.personId);
 
         return (
           <div className="participant stack stack-tight" key={index}>
@@ -92,9 +110,7 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
             <select
               value={participant.personId}
               aria-label={`Jogador ${index + 1}`}
-              onChange={(event) =>
-                updateParticipant(index, { personId: event.target.value, deckId: '' })
-              }
+              onChange={(event) => updateParticipant(index, { personId: event.target.value })}
             >
               <option value="">Jogador…</option>
               {activePeople.map((person) => (
@@ -111,10 +127,14 @@ export function MatchForm({ initial, onSave, onCancel }: MatchFormProps) {
               onChange={(event) => updateParticipant(index, { deckId: event.target.value })}
             >
               <option value="">Deck…</option>
-              {availableDecks.map((deck) => (
-                <option value={deck.id} key={deck.id}>
-                  {deck.commander.name}
-                </option>
+              {ownerGroups.map(({ owner, owned }) => (
+                <optgroup label={owner.name} key={owner.id}>
+                  {owned.map((deck) => (
+                    <option value={deck.id} key={deck.id}>
+                      {deck.commander.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
