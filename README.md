@@ -8,18 +8,18 @@ Design: [`docs/superpowers/specs/2026-09-09-mtg-helper-design.md`](docs/superpow
 ## Rodar
 
 ```bash
-npm install
-npm run dev        # http://localhost:5173
+bun install
+bun run dev        # http://localhost:5173
 ```
 
-Para testar no celular na mesma rede: `npm run dev -- --host` e abra o IP
+Para testar no celular na mesma rede: `bun run dev --host` e abra o IP
 mostrado no Safari.
 
 ## Build
 
 ```bash
-npm run build      # typecheck + bundle em dist/
-npm run preview    # serve o dist/ localmente
+bun run build      # typecheck + bundle em dist/
+bun run preview    # serve o dist/ localmente
 ```
 
 O `dist/` é estático: sobe em Vercel, Netlify ou GitHub Pages. O service worker
@@ -29,9 +29,9 @@ CacheFirst.
 ## Verificação
 
 ```bash
-npm test           # suíte completa (Vitest)
-npm run coverage   # cobertura de domain/, data/ e stores/
-npm run validate   # tsc --noEmit
+bun run test       # suíte completa (Vitest) — use `run`, `bun test` é outro runner
+bun run coverage   # cobertura de domain/, data/ e stores/
+bun run validate   # tsc --noEmit
 ```
 
 ## Dados estáticos
@@ -41,7 +41,7 @@ buscadas uma vez do Scryfall. É dado imutável de 2022 e nunca é consultado em
 runtime. Para regerar:
 
 ```bash
-npm run generate:sheets
+bun run generate:sheets
 ```
 
 ## Backup
