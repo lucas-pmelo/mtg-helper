@@ -2,7 +2,12 @@
   "name": "mtg-helper",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22",
+    "bun": ">=1.3"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

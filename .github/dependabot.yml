@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  # Bun lockfiles are handled by the npm ecosystem: it reads package.json and
+  # updates bun.lock.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      # One pull request for the routine bumps: reviewing twenty of them one by
+      # one is how a project stops reviewing them at all.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
